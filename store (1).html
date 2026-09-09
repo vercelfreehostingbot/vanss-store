@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>VanssStore • Manajemen Produk</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family:'Inter',sans-serif;
+            background: #0a0f1e;
+            background-image: url('https://ganga--link--ghhzdp9sv8hk.code.run/i/khd1nczb.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color:#eef2ff;
+            min-height:100vh;
+            padding:20px;
+        }
+        .container { max-width:1200px; margin:0 auto; }
+        .header {
+            background:rgba(15,25,50,0.7);
+            backdrop-filter:blur(12px);
+            border-radius:32px;
+            padding:20px 28px;
+            margin-bottom:28px;
+            border:1px solid rgba(250,204,21,0.3);
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            flex-wrap:wrap;
+            gap:16px;
+        }
+        .header-left { display:flex; align-items:center; gap:16px; }
+        .profile-pic {
+            width:60px; height:60px; border-radius:50%; object-fit:cover;
+            border:2px solid #facc15; background:#1e293b; flex-shrink:0;
+        }
+        .header h1 {
+            font-size:1.8rem;
+            background:linear-gradient(135deg,#facc15,#eab308);
+            -webkit-background-clip:text;
+            background-clip:text;
+            color:transparent;
+        }
+        .header p { color:#9ca3af; font-size:0.8rem; }
+        .header-actions { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+        .btn {
+            border:none; padding:10px 24px; border-radius:40px;
+            font-weight:700; cursor:pointer; transition:0.2s;
+        }
+        .btn-add { background:#facc15; color:#0a0f1e; }
+        .btn-add:hover { background:#eab308; transform:scale(1.02); }
+        .btn-admin { background:#3b82f6; color:white; }
+        .btn-admin:hover { background:#2563eb; }
+        .btn-admin.active { background:#ef4444; }
+        .btn-admin.active:hover { background:#dc2626; }
+        .search-box {
+            display:flex; align-items:center; background:#0f172a;
+            border-radius:40px; padding:4px 16px; border:1px solid #334155;
+        }
+        .search-box input {
+            background:transparent; border:none; color:white; padding:8px 0;
+            font-size:0.9rem; outline:none; width:160px;
+        }
+        .search-box input::placeholder { color:#6b7280; }
+        .search-box i { color:#6b7280; margin-right:6px; }
+        .produk-grid {
+            display:grid;
+            grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+            gap:24px; margin-bottom:30px;
+        }
+        .produk-card {
+            background:rgba(15,25,50,0.7);
+            backdrop-filter:blur(8px);
+            border-radius:28px;
+            border:1px solid rgba(250,204,21,0.3);
+            overflow:hidden;
+            transition:0.2s;
+            display:flex;
+            flex-direction:column;
+        }
+        .produk-card:hover { transform:translateY(-4px); border-color:#facc15; }
+        .produk-img {
+            width:100%; height:200px; object-fit:cover; background:#1e293b;
+        }
+        .produk-info { padding:18px 20px; flex:1; display:flex; flex-direction:column; }
+        .produk-nama { font-size:1.2rem; font-weight:700; margin-bottom:4px; }
+        .produk-harga { color:#facc15; font-weight:700; font-size:1.1rem; margin-bottom:12px; }
+        .produk-actions { display:flex; gap:10px; margin-top:auto; flex-wrap:wrap; }
+        .produk-actions button {
+            flex:1; padding:8px 0; border:none; border-radius:40px;
+            font-weight:600; cursor:pointer; transition:0.2s; font-size:0.85rem;
+            min-width:70px;
+        }
+        .btn-edit { background:#3b82f6; color:white; }
+        .btn-edit:hover { background:#2563eb; }
+        .btn-delete { background:#ef4444; color:white; }
+        .btn-delete:hover { background:#dc2626; }
+        .btn-wa { background:#25D366; color:white; }
+        .btn-wa:hover { background:#128C7E; }
+        .empty { text-align:center; padding:60px 20px; color:#9ca3af; grid-column:1/-1; }
+        .empty i { font-size:4rem; color:#facc15; opacity:0.3; }
+        .empty h3 { margin-top:16px; }
+        .pagination {
+            display:flex; justify-content:center; gap:8px; margin:20px 0 30px; flex-wrap:wrap;
+        }
+        .pagination button {
+            padding:8px 16px; border:none; border-radius:40px;
+            background:#1e293b; color:#eef2ff; font-weight:600; cursor:pointer; transition:0.2s;
+        }
+        .pagination button.active { background:#facc15; color:#0a0f1e; }
+        .pagination button:hover:not(.active) { background:#334155; }
+        .modal {
+            display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+            background:rgba(0,0,0,0.8); backdrop-filter:blur(8px);
+            z-index:1000; justify-content:center; align-items:center;
+        }
+        .modal.open { display:flex; }
+        .modal-content {
+            background:#1e293b; border-radius:32px; padding:28px;
+            max-width:450px; width:90%; border:1px solid #facc15;
+        }
+        .modal-content h2 { color:#facc15; margin-bottom:20px; text-align:center; }
+        .modal-content input[type="text"],
+        .modal-content input[type="password"] {
+            width:100%; padding:12px 16px; margin:8px 0;
+            border-radius:40px; border:none; background:#0f172a;
+            color:white; font-size:1rem;
+        }
+        .modal-content .file-label {
+            display:block; background:rgba(255,255,255,0.1); padding:12px;
+            border-radius:40px; text-align:center; cursor:pointer;
+            margin:8px 0; border:1px dashed #facc15;
+        }
+        .modal-content .file-label:hover { background:rgba(250,204,21,0.15); }
+        .modal-content input[type="file"] { display:none; }
+        .modal-actions { display:flex; gap:12px; margin-top:16px; }
+        .modal-actions button { flex:1; padding:12px; border:none; border-radius:40px; font-weight:700; cursor:pointer; }
+        .btn-save { background:#facc15; color:#0a0f1e; }
+        .btn-save:hover { background:#eab308; }
+        .btn-cancel { background:#334155; color:white; }
+        .btn-cancel:hover { background:#475569; }
+        .password-overlay {
+            display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+            background:rgba(0,0,0,0.85); backdrop-filter:blur(8px);
+            z-index:2000; justify-content:center; align-items:center;
+        }
+        .password-overlay.open { display:flex; }
+        .password-box {
+            background:#1e293b; border-radius:32px; padding:32px;
+            max-width:400px; width:90%; border:1px solid #facc15; text-align:center;
+        }
+        .password-box h2 { color:#facc15; margin-bottom:16px; }
+        .password-box input {
+            width:100%; padding:12px 16px; border-radius:40px; border:none;
+            background:#0f172a; color:white; font-size:1rem; margin-bottom:16px;
+        }
+        .password-box button { padding:12px 24px; border-radius:40px; border:none; font-weight:700; cursor:pointer; margin:0 8px; }
+        .btn-pw-confirm { background:#facc15; color:#0a0f1e; }
+        .btn-pw-confirm:hover { background:#eab308; }
+        .btn-pw-cancel { background:#334155; color:white; }
+        .btn-pw-cancel:hover { background:#475569; }
+        .admin-badge {
+            background:#4ade80; color:#0a0f1e; padding:4px 12px;
+            border-radius:40px; font-size:0.7rem; font-weight:600; display:inline-block;
+        }
+        footer { text-align:center; padding:16px; color:#6b7280; font-size:0.8rem; }
+        @media (max-width:600px) {
+            .header { flex-direction:column; text-align:center; }
+            .header-left { flex-direction:column; align-items:center; }
+            .produk-grid { grid-template-columns:1fr; }
+            .search-box input { width:120px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div class="header-left">
+            <img class="profile-pic" id="profilePic" src="https://ganga--link--ghhzdp9sv8hk.code.run/i/yipl92hn.jpg" alt="Foto Profil">
+            <div>
+                <h1><i class="fas fa-store"></i> VanssStore</h1>
+                <p>Kelola produk jualanmu dengan mudah</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Cari nama / harga...">
+            </div>
+            <span id="adminStatus" style="font-size:0.8rem; color:#9ca3af;"></span>
+            <button class="btn btn-admin" id="btnAdminMode"><i class="fas fa-user-shield"></i> Mode Admin</button>
+            <button class="btn btn-add" id="btnTambahProduk" style="display:none;"><i class="fas fa-plus"></i> Tambah Produk</button>
+        </div>
+    </div>
+
+    <div id="produkGrid" class="produk-grid"></div>
+    <div class="pagination" id="paginationContainer"></div>
+</div>
+
+<footer>✦ Data tersimpan otomatis di browser ✦</footer>
+
+<!-- Modal Tambah / Edit Produk -->
+<div id="modalProduk" class="modal">
+    <div class="modal-content">
+        <h2 id="modalTitle">Tambah Produk</h2>
+        <input type="text" id="inputNama" placeholder="Nama produk">
+        <input type="text" id="inputHarga" placeholder="Harga (contoh: 120000)">
+        <label class="file-label" id="fileLabel">
+            <i class="fas fa-image"></i> <span id="fileText">Pilih foto produk</span>
+            <input type="file" id="inputFoto" accept="image/*">
+        </label>
+        <input type="hidden" id="editIndex" value="-1">
+        <div class="modal-actions">
+            <button class="btn-save" id="btnSimpan">Simpan</button>
+            <button class="btn-cancel" id="btnBatal">Batal</button>
+        </div>
+    </div>
+</div>
+
+<!-- Password Overlay -->
+<div id="passwordOverlay" class="password-overlay">
+    <div class="password-box">
+        <h2>🔐 Verifikasi Admin</h2>
+        <p style="color:#9ca3af; margin-bottom:12px;">Masukkan password untuk mengakses menu edit</p>
+        <input type="password" id="inputPassword" placeholder="Password admin">
+        <div>
+            <button class="btn-pw-confirm" id="btnPwConfirm">Konfirmasi</button>
+            <button class="btn-pw-cancel" id="btnPwCancel">Batal</button>
+        </div>
+        <div id="pwError" style="color:#ef4444; font-size:0.8rem; margin-top:10px;"></div>
+    </div>
+</div>
+
+<script>
+    // ========== KONFIGURASI ==========
+    const ADMIN_PASSWORD = "oniyyimut";
+    let isAdmin = false;
+    const ITEMS_PER_PAGE = 6;
+    let currentPage = 1;
+    let filteredProducts = [];
+
+    // ========== DATA PRODUK (localStorage) ==========
+    let products = JSON.parse(localStorage.getItem('vanss_products')) || [];
+
+    // ========== RENDER PRODUK ==========
+    function renderProducts() {
+        const grid = document.getElementById('produkGrid');
+        const adminStatus = document.getElementById('adminStatus');
+        const tambahBtn = document.getElementById('btnTambahProduk');
+        const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
+
+        filteredProducts = products.filter(p => {
+            const nameMatch = p.nama.toLowerCase().includes(searchQuery);
+            const priceMatch = p.harga.toString().includes(searchQuery);
+            return nameMatch || priceMatch;
+        });
+
+        if (isAdmin) {
+            adminStatus.innerHTML = '<span class="admin-badge"><i class="fas fa-check-circle"></i> Mode Admin Aktif</span>';
+            tambahBtn.style.display = 'block';
+            document.getElementById('btnAdminMode').innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout Admin';
+            document.getElementById('btnAdminMode').classList.add('active');
+        } else {
+            adminStatus.innerHTML = '<span style="color:#6b7280;"><i class="fas fa-lock"></i> Mode Lihat Saja</span>';
+            tambahBtn.style.display = 'none';
+            document.getElementById('btnAdminMode').innerHTML = '<i class="fas fa-user-shield"></i> Mode Admin';
+            document.getElementById('btnAdminMode').classList.remove('active');
+        }
+
+        const totalItems = filteredProducts.length;
+        const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+        const start = (currentPage - 1) * ITEMS_PER_PAGE;
+        const end = start + ITEMS_PER_PAGE;
+        const pageItems = filteredProducts.slice(start, end);
+
+        if (totalItems === 0) {
+            grid.innerHTML = `
+                <div class="empty">
+                    <i class="fas fa-box-open"></i>
+                    <h3>${searchQuery ? 'Tidak ada produk sesuai pencarian' : 'Belum ada produk'}</h3>
+                    <p style="margin-top:8px;">${isAdmin ? 'Klik "Tambah Produk" untuk memulai' : 'Admin belum menambahkan produk'}</p>
+                </div>
+            `;
+        } else {
+            grid.innerHTML = pageItems.map((product, idx) => {
+                const realIndex = products.indexOf(product);
+                return `
+                <div class="produk-card">
+                    <img class="produk-img" src="${product.foto || 'https://placehold.co/400x300/1e293b/facc15?text=No+Image'}" alt="${product.nama}">
+                    <div class="produk-info">
+                        <div class="produk-nama">${product.nama}</div>
+                        <div class="produk-harga">Rp ${Number(product.harga).toLocaleString()}</div>
+                        <div class="produk-actions">
+                            <button class="btn-wa" onclick="whatsapp()"><i class="fab fa-whatsapp"></i> Beli</button>
+                            ${isAdmin ? `
+                            <button class="btn-edit" onclick="editProduct(${realIndex})"><i class="fas fa-pen"></i> Edit</button>
+                            <button class="btn-delete" onclick="deleteProduct(${realIndex})"><i class="fas fa-trash"></i> Hapus</button>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        renderPagination(totalPages);
+    }
+
+    function renderPagination(totalPages) {
+        const container = document.getElementById('paginationContainer');
+        if (totalPages <= 1) { container.innerHTML = ''; return; }
+        let html = '';
+        for (let i = 1; i <= totalPages; i++) {
+            html += `<button class="${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+        }
+        container.innerHTML = html;
+        container.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                currentPage = parseInt(this.dataset.page);
+                renderProducts();
+            });
+        });
+    }
+
+    // ========== WHATSAPP ==========
+    function whatsapp() {
+        window.open('https://wa.me/6285333938526', '_blank');
+    }
+
+    // ========== TAMBAH PRODUK ==========
+    document.getElementById('btnTambahProduk').addEventListener('click', () => {
+        if (!isAdmin) return;
+        document.getElementById('modalTitle').innerText = 'Tambah Produk';
+        document.getElementById('inputNama').value = '';
+        document.getElementById('inputHarga').value = '';
+        document.getElementById('inputFoto').value = '';
+        document.getElementById('fileText').innerText = 'Pilih foto produk';
+        document.getElementById('editIndex').value = '-1';
+        document.getElementById('modalProduk').classList.add('open');
+    });
+
+    function editProduct(index) {
+        if (!isAdmin) return;
+        const product = products[index];
+        document.getElementById('modalTitle').innerText = 'Edit Produk';
+        document.getElementById('inputNama').value = product.nama;
+        document.getElementById('inputHarga').value = product.harga;
+        document.getElementById('fileText').innerText = product.foto ? 'Foto sudah ada (klik untuk ganti)' : 'Pilih foto produk';
+        document.getElementById('editIndex').value = index;
+        document.getElementById('modalProduk').classList.add('open');
+    }
+
+    function deleteProduct(index) {
+        if (!isAdmin) return;
+        if (confirm('Yakin ingin menghapus produk ini?')) {
+            products.splice(index, 1);
+            localStorage.setItem('vanss_products', JSON.stringify(products));
+            renderProducts();
+        }
+    }
+
+    document.getElementById('btnSimpan').addEventListener('click', () => {
+        if (!isAdmin) return;
+        const nama = document.getElementById('inputNama').value.trim();
+        const harga = document.getElementById('inputHarga').value.trim();
+        const fileInput = document.getElementById('inputFoto');
+        const editIndex = parseInt(document.getElementById('editIndex').value);
+
+        if (!nama || !harga) { alert('Isi nama dan harga produk!'); return; }
+        if (isNaN(harga) || Number(harga) <= 0) { alert('Harga harus angka positif!'); return; }
+
+        const saveProduct = (fotoData) => {
+            const product = { nama, harga: Number(harga), foto: fotoData || '' };
+            if (editIndex >= 0) products[editIndex] = product;
+            else products.push(product);
+            localStorage.setItem('vanss_products', JSON.stringify(products));
+            renderProducts();
+            document.getElementById('modalProduk').classList.remove('open');
+        };
+
+        if (fileInput.files && fileInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => saveProduct(e.target.result);
+            reader.readAsDataURL(fileInput.files[0]);
+        } else {
+            if (editIndex >= 0 && products[editIndex].foto) saveProduct(products[editIndex].foto);
+            else saveProduct('');
+        }
+    });
+
+    document.getElementById('btnBatal').addEventListener('click', () => {
+        document.getElementById('modalProduk').classList.remove('open');
+    });
+
+    document.getElementById('inputFoto').addEventListener('change', function() {
+        if (this.files && this.files[0]) document.getElementById('fileText').innerText = this.files[0].name;
+    });
+
+    // ========== ADMIN LOGIN ==========
+    document.getElementById('btnAdminMode').addEventListener('click', () => {
+        if (isAdmin) {
+            isAdmin = false;
+            renderProducts();
+            document.getElementById('passwordOverlay').classList.remove('open');
+            document.getElementById('inputPassword').value = '';
+            document.getElementById('pwError').innerText = '';
+        } else {
+            document.getElementById('passwordOverlay').classList.add('open');
+            document.getElementById('inputPassword').value = '';
+            document.getElementById('pwError').innerText = '';
+            document.getElementById('inputPassword').focus();
+        }
+    });
+
+    document.getElementById('btnPwConfirm').addEventListener('click', () => {
+        const pw = document.getElementById('inputPassword').value;
+        if (pw === ADMIN_PASSWORD) {
+            isAdmin = true;
+            document.getElementById('passwordOverlay').classList.remove('open');
+            document.getElementById('inputPassword').value = '';
+            renderProducts();
+        } else {
+            document.getElementById('pwError').innerText = '❌ Password salah!';
+        }
+    });
+
+    document.getElementById('btnPwCancel').addEventListener('click', () => {
+        document.getElementById('passwordOverlay').classList.remove('open');
+        document.getElementById('inputPassword').value = '';
+        document.getElementById('pwError').innerText = '';
+    });
+
+    document.getElementById('inputPassword').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') document.getElementById('btnPwConfirm').click();
+    });
+
+    // ========== PENCARIAN ==========
+    document.getElementById('searchInput').addEventListener('input', () => {
+        currentPage = 1;
+        renderProducts();
+    });
+
+    // ========== INIT ==========
+    renderProducts();
+</script>
+</body>
+</html>
